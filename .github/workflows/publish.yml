@@ -1,0 +1,58 @@
+name: Publish to PyPI
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # needed to push git tags
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # full history for tag detection
+
+      - uses: astral-sh/setup-uv@v5
+
+      - name: Get next patch version
+        id: version
+        run: |
+          # Fetch latest published version from PyPI
+          LATEST=$(python3 -c "
+          import urllib.request, json
+          try:
+              with urllib.request.urlopen('https://pypi.org/pypi/nantex/json') as r:
+                  print(json.loads(r.read())['info']['version'])
+          except Exception:
+              print('0.0.0')
+          ")
+          echo "Latest on PyPI: $LATEST"
+
+          # Increment patch
+          IFS='.' read -ra V <<< "$LATEST"
+          NEW="${V[0]}.${V[1]}.$((V[2] + 1))"
+          echo "Next version:   $NEW"
+          echo "version=$NEW" >> "$GITHUB_OUTPUT"
+
+      - name: Bump version in pyproject.toml
+        run: |
+          sed -i "s/^version = \".*\"/version = \"${{ steps.version.outputs.version }}\"/" pyproject.toml
+          grep "^version" pyproject.toml
+
+      - name: Build
+        run: uv build
+
+      - name: Publish
+        run: uv publish
+        env:
+          UV_PUBLISH_TOKEN: ${{ secrets.PYPI_TOKEN }}
+
+      - name: Tag release
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag "v${{ steps.version.outputs.version }}"
+          git push origin "v${{ steps.version.outputs.version }}"
