@@ -16,7 +16,7 @@ jobs:
         with:
           fetch-depth: 0  # full history for tag detection
 
-      - uses: astral-sh/setup-uv@v5
+      - uses: astral-sh/setup-uv@v4
 
       - name: Get next patch version
         id: version
@@ -62,18 +62,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release create "v${{ steps.version.outputs.version }}" \
-            dist/*.whl dist/*.tar.gz \
-            --title "nantex v${{ steps.version.outputs.version }}" \
-            --notes "## Install
-
-\`\`\`bash
-pip install nantex==${{ steps.version.outputs.version }}
-# or
-uvx nantex main.tex
-\`\`\`
-
-## What's changed
-See [commit history](https://github.com/Forge41/nantex/commits/main) for details.
-
-**Full changelog:** https://pypi.org/project/nantex/${{ steps.version.outputs.version }}/"
+          VERSION="${{ steps.version.outputs.version }}"
+          gh release create "v${VERSION}" dist/*.whl dist/*.tar.gz \
+            --title "nantex v${VERSION}" \
+            --notes "Install: pip install nantex==${VERSION} | uvx nantex main.tex | https://pypi.org/project/nantex/${VERSION}/"
