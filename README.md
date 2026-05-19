@@ -1,5 +1,9 @@
 # nantex
 
+[![PyPI version](https://img.shields.io/pypi/v/nantex.svg)](https://pypi.org/project/nantex/)
+[![Python](https://img.shields.io/pypi/pyversions/nantex.svg)](https://pypi.org/project/nantex/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 LaTeX-to-PDF live preview in your browser — no local LaTeX install needed.
 
 Write `.tex`, save, see the result. That's it.
