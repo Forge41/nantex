@@ -14,6 +14,7 @@ from nantex.compiler import CompileError, compile as latex_compile
 from nantex.config import load_config
 from nantex.server import PreviewServer
 from nantex import watcher as watcher_mod
+from nantex import project as project_mod
 
 app = typer.Typer(help="nantex — LaTeX live preview in your browser.")
 console = Console()
@@ -75,13 +76,14 @@ def main(
 
     pdf_path = output or tex_file.with_suffix(".pdf")
 
-    # --- warnings ---
-    source = tex_file.read_text(encoding="utf-8", errors="replace")
-    if "\\input{" in source or "\\include{" in source:
-        console.print("[yellow][nantex][/yellow] Warning: \\\\input{}/\\\\include{} detected — multi-file projects not supported in v1. Included files will be missing.")
-
     if api.startswith("http://"):
         console.print("[yellow][nantex][/yellow] Warning: --api uses HTTP. Document contents will be transmitted unencrypted.")
+
+    # --- resolve root and collect initial resources ---
+    root = project_mod.find_root(tex_file.resolve())
+    all_paths = project_mod.get_all_paths(root)
+    if len(all_paths) > 1:
+        console.print(f"[cyan][nantex][/cyan] Multi-file project detected ({len(all_paths)} files), root: {root.name}")
 
     # --- start preview server ---
     srv = PreviewServer(str(pdf_path), port)
@@ -91,12 +93,15 @@ def main(
         err_console.print(f"[bold red][nantex][/bold red] Port {port} is already in use. Try: nantex {tex_file.name} --port {port + 1}")
         raise typer.Exit(1)
 
-    # --- first compile ---
+    # --- compile function ---
     def do_compile() -> bool:
+        nonlocal all_paths
         t0 = time.perf_counter()
-        content = tex_file.read_text(encoding="utf-8", errors="replace")
+        # Re-collect resources on each compile so newly added \input{} are picked up
+        resources = project_mod.collect_resources(root)
+        all_paths = [Path(r["path"]) for r in resources]
         try:
-            pdf_bytes = latex_compile(content, compiler, api)
+            pdf_bytes = latex_compile(None, compiler, api, resources=resources)
         except CompileError as e:
             elapsed = time.perf_counter() - t0
             err_console.print(f"[bold red][nantex][/bold red] Compile error ({elapsed:.1f}s):\n{e}")
@@ -131,4 +136,4 @@ def main(
 
     # --- watch loop ---
     console.print("[dim][nantex][/dim] Watching for changes… (Ctrl+C to stop)")
-    watcher_mod.watch(str(tex_file), do_compile)
+    watcher_mod.watch([str(p) for p in all_paths], do_compile)

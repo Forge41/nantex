@@ -6,10 +6,22 @@ class CompileError(Exception):
     pass
 
 
-def compile(content: str, compiler: str, api_url: str) -> bytes:
+def compile(
+    content: str | None,
+    compiler: str,
+    api_url: str,
+    resources: list[dict] | None = None,
+) -> bytes:
+    if resources is not None:
+        res = resources
+    elif content is not None:
+        res = [{"main": True, "content": content}]
+    else:
+        raise CompileError("compile() requires either 'content' or 'resources'")
+
     payload = {
         "compiler": compiler,
-        "resources": [{"main": True, "content": content}],
+        "resources": res,
     }
     try:
         resp = requests.post(api_url, json=payload, timeout=30)
