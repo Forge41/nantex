@@ -1,4 +1,6 @@
 import json
+import queue
+import threading
 import time
 from pathlib import Path
 
@@ -76,8 +78,61 @@ def test_status_after_error_notify(server_no_pdf):
     assert "Missing" in data["message"]
 
 
-def test_notify_puts_to_queue(server_no_pdf):
+def test_notify_puts_to_client_queues(server_no_pdf):
+    """notify() fans out to all registered client queues."""
     srv, port, _ = server_no_pdf
+    q1: queue.Queue = queue.Queue()
+    q2: queue.Queue = queue.Queue()
+    with srv._clients_lock:
+        srv._clients.append(q1)
+        srv._clients.append(q2)
     srv.notify("ok", "test")
-    item = srv._queue.get(timeout=1)
-    assert item["state"] == "ok"
+    item1 = q1.get(timeout=1)
+    item2 = q2.get(timeout=1)
+    assert item1["state"] == "ok"
+    assert item2["state"] == "ok"
+
+
+def test_two_clients_both_receive_notify(server_no_pdf):
+    """Two independently registered client queues both receive a notify payload."""
+    srv, port, _ = server_no_pdf
+    q1: queue.Queue = queue.Queue()
+    q2: queue.Queue = queue.Queue()
+    with srv._clients_lock:
+        srv._clients.append(q1)
+        srv._clients.append(q2)
+    srv.notify("ok", "broadcast")
+    item1 = q1.get(timeout=1)
+    item2 = q2.get(timeout=1)
+    assert item1["state"] == "ok"
+    assert item2["state"] == "ok"
+    assert item1["message"] == item2["message"]
+
+
+def test_disconnected_client_removed_from_registry(server_no_pdf):
+    """A client queue that is removed from the registry no longer receives payloads."""
+    srv, port, _ = server_no_pdf
+    q1: queue.Queue = queue.Queue()
+    q2: queue.Queue = queue.Queue()
+    with srv._clients_lock:
+        srv._clients.append(q1)
+        srv._clients.append(q2)
+
+    # Simulate disconnection: remove q1 from the registry
+    with srv._clients_lock:
+        srv._clients.remove(q1)
+
+    srv.notify("ok", "after disconnect")
+
+    # q2 should receive the message
+    item2 = q2.get(timeout=1)
+    assert item2["state"] == "ok"
+
+    # q1 should NOT receive anything
+    with pytest.raises(queue.Empty):
+        q1.get(timeout=0.1)
+
+    # Registry should only contain q2
+    with srv._clients_lock:
+        assert q1 not in srv._clients
+        assert q2 in srv._clients

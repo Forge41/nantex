@@ -69,7 +69,8 @@ class PreviewServer:
     def __init__(self, pdf_path: str, port: int):
         self._pdf_path = Path(pdf_path)
         self._port = port
-        self._queue: queue.Queue = queue.Queue()
+        self._clients: list[queue.Queue] = []
+        self._clients_lock = threading.Lock()
         self._last_state: dict = {}
         self._ready = threading.Event()
         self._server: ThreadingHTTPServer | None = None
@@ -122,21 +123,42 @@ class PreviewServer:
                 self.send_header("Connection", "keep-alive")
                 self.end_headers()
 
+                per_client_queue: queue.Queue = queue.Queue()
+                with server._clients_lock:
+                    server._clients.append(per_client_queue)
+
                 # Emit current state immediately so reconnecting browsers catch up
                 if server._last_state:
                     self._sse_write(json.dumps(server._last_state))
 
                 while True:
                     try:
-                        item = server._queue.get(timeout=30)
+                        item = per_client_queue.get(timeout=30)
                         self._sse_write(json.dumps(item))
                     except queue.Empty:
                         try:
                             self.wfile.write(b": keep-alive\n\n")
                             self.wfile.flush()
                         except Exception:
+                            with server._clients_lock:
+                                try:
+                                    server._clients.remove(per_client_queue)
+                                except ValueError:
+                                    pass
                             break
+                    except BrokenPipeError:
+                        with server._clients_lock:
+                            try:
+                                server._clients.remove(per_client_queue)
+                            except ValueError:
+                                pass
+                        break
                     except Exception:
+                        with server._clients_lock:
+                            try:
+                                server._clients.remove(per_client_queue)
+                            except ValueError:
+                                pass
                         break
 
             def _send_status(self):
@@ -169,4 +191,6 @@ class PreviewServer:
         safe_message = html.escape(message)
         payload = {"state": state, "message": safe_message}
         self._last_state = payload
-        self._queue.put(payload)
+        with self._clients_lock:
+            for client_queue in list(self._clients):
+                client_queue.put(payload)

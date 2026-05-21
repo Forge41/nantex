@@ -1,4 +1,5 @@
 import os
+import socket
 import tempfile
 import time
 import webbrowser
@@ -34,6 +35,7 @@ def main(
     output: Annotated[Optional[Path], typer.Option("--output", help="Output PDF path")] = None,
     port: Annotated[int, typer.Option("--port", help="Preview server port")] = 7474,
     once: Annotated[bool, typer.Option("--once", help="Compile once and exit")] = False,
+    share: Annotated[bool, typer.Option("--share", help="Print local network share URL")] = False,
     version: Annotated[Optional[bool], typer.Option("--version", callback=_version_callback, is_eager=True)] = None,
 ):
     # --- validate input ---
@@ -90,6 +92,12 @@ def main(
     # --- open browser ---
     url = f"http://localhost:{port}"
     console.print(f"[cyan][nantex][/cyan] Preview: {url}")
+    if share:
+        try:
+            local_ip = socket.gethostbyname(socket.gethostname())
+        except OSError:
+            local_ip = "127.0.0.1"
+        console.print(f"[cyan][nantex][/cyan] Share: http://{local_ip}:{port}")
     webbrowser.open(url)
 
     if once:
