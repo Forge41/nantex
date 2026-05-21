@@ -12,6 +12,7 @@ from nantex import __version__
 from nantex.compiler import CompileError, compile as latex_compile
 from nantex.server import PreviewServer
 from nantex import watcher as watcher_mod
+from nantex.snippet import extract_snippet, build_standalone
 
 app = typer.Typer(help="nantex — LaTeX live preview in your browser.")
 console = Console()
@@ -34,6 +35,7 @@ def main(
     output: Annotated[Optional[Path], typer.Option("--output", help="Output PDF path")] = None,
     port: Annotated[int, typer.Option("--port", help="Preview server port")] = 7474,
     once: Annotated[bool, typer.Option("--once", help="Compile once and exit")] = False,
+    snippet: Annotated[Optional[str], typer.Option("--snippet", help="Extract and compile a snippet (label name or line range like '10-25')")] = None,
     version: Annotated[Optional[bool], typer.Option("--version", callback=_version_callback, is_eager=True)] = None,
 ):
     # --- validate input ---
@@ -67,6 +69,15 @@ def main(
     def do_compile() -> bool:
         t0 = time.perf_counter()
         content = tex_file.read_text(encoding="utf-8", errors="replace")
+
+        if snippet is not None:
+            console.print(f"[cyan][nantex][/cyan] Snippet mode: {snippet}")
+            extracted = extract_snippet(content, snippet)
+            if extracted is None:
+                err_console.print(f"[bold red][nantex][/bold red] Snippet not found: {snippet!r}")
+                return False
+            content = build_standalone(extracted, content)
+
         try:
             pdf_bytes = latex_compile(content, compiler, api)
         except CompileError as e:
