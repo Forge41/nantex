@@ -12,6 +12,7 @@ from rich.console import Console
 from nantex import __version__
 from nantex.compiler import CompileError, compile as latex_compile
 from nantex.config import load_config
+from nantex.linter import lint
 from nantex.server import PreviewServer
 from nantex import watcher as watcher_mod
 from nantex import project as project_mod
@@ -99,10 +100,24 @@ def main(
     def do_compile() -> bool:
         nonlocal all_paths
         t0 = time.perf_counter()
+        raw = tex_file.read_text(encoding="utf-8", errors="replace")
+
+        # --- pre-compile static lint (always on the source file) ---
+        lint_errors = lint(raw, tex_file)
+        if lint_errors:
+            warnings = [e for e in lint_errors if e.severity == "warning"]
+            errors = [e for e in lint_errors if e.severity == "error"]
+            for w in warnings:
+                err_console.print(f"[yellow][nantex lint][/yellow] Line {w.line}: {w.message}")
+            if errors:
+                formatted = "\n".join(f"  Line {e.line}: {e.message}" for e in errors)
+                err_console.print(f"[bold red][nantex lint][/bold red] {len(errors)} error(s):\n{formatted}")
+                srv.notify("error", formatted)
+                return False
+
         if snippet is not None:
             # Snippet mode: compile just the extracted fragment as a standalone doc
             console.print(f"[cyan][nantex][/cyan] Snippet mode: {snippet}")
-            raw = tex_file.read_text(encoding="utf-8", errors="replace")
             extracted = extract_snippet(raw, snippet)
             if extracted is None:
                 err_console.print(f"[bold red][nantex][/bold red] Snippet not found: {snippet!r}")
