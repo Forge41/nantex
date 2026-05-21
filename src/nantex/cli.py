@@ -29,7 +29,7 @@ def _version_callback(value: bool):
 
 @app.command()
 def main(
-    tex_file: Annotated[Path, typer.Argument(help=".tex file to compile and watch")],
+    tex_file: Annotated[Optional[Path], typer.Argument(help=".tex file to compile and watch")] = None,
     compiler: Annotated[str, typer.Option("--compiler", help="LaTeX compiler")] = "pdflatex",
     api: Annotated[str, typer.Option("--api", help="Compile API endpoint")] = DEFAULT_API,
     output: Annotated[Optional[Path], typer.Option("--output", help="Output PDF path")] = None,
@@ -37,8 +37,19 @@ def main(
     once: Annotated[bool, typer.Option("--once", help="Compile once and exit")] = False,
     share: Annotated[bool, typer.Option("--share", help="Print local network share URL")] = False,
     version: Annotated[Optional[bool], typer.Option("--version", callback=_version_callback, is_eager=True)] = None,
+    mcp: Annotated[bool, typer.Option("--mcp", help="Run as MCP server")] = False,
 ):
+    # --- MCP server mode ---
+    if mcp:
+        from nantex import mcp_server
+        mcp_server.run()
+        return
+
     # --- validate input ---
+    if tex_file is None:
+        err_console.print("[bold red]Error:[/bold red] Provide a .tex file or use --mcp")
+        raise typer.Exit(1)
+
     if not tex_file.exists():
         err_console.print(f"[bold red]Error:[/bold red] File not found: {tex_file}")
         raise typer.Exit(1)
