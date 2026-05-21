@@ -15,6 +15,7 @@ from nantex.config import load_config
 from nantex.server import PreviewServer
 from nantex import watcher as watcher_mod
 from nantex import project as project_mod
+from nantex.snippet import extract_snippet, build_standalone
 
 app = typer.Typer(help="nantex — LaTeX live preview in your browser.")
 console = Console()
@@ -38,6 +39,7 @@ def main(
     port: Annotated[int, typer.Option("--port", help="Preview server port")] = 7474,
     once: Annotated[bool, typer.Option("--once", help="Compile once and exit")] = False,
     share: Annotated[bool, typer.Option("--share", help="Print local network share URL")] = False,
+    snippet: Annotated[Optional[str], typer.Option("--snippet", help="Extract and compile a snippet (label or line range '10-25')")] = None,
     version: Annotated[Optional[bool], typer.Option("--version", callback=_version_callback, is_eager=True)] = None,
     mcp: Annotated[bool, typer.Option("--mcp", help="Run as MCP server")] = False,
 ):
@@ -97,16 +99,33 @@ def main(
     def do_compile() -> bool:
         nonlocal all_paths
         t0 = time.perf_counter()
-        # Re-collect resources on each compile so newly added \input{} are picked up
-        resources = project_mod.collect_resources(root)
-        all_paths = [Path(r["path"]) for r in resources]
-        try:
-            pdf_bytes = latex_compile(None, compiler, api, resources=resources)
-        except CompileError as e:
-            elapsed = time.perf_counter() - t0
-            err_console.print(f"[bold red][nantex][/bold red] Compile error ({elapsed:.1f}s):\n{e}")
-            srv.notify("error", str(e))
-            return False
+        if snippet is not None:
+            # Snippet mode: compile just the extracted fragment as a standalone doc
+            console.print(f"[cyan][nantex][/cyan] Snippet mode: {snippet}")
+            raw = tex_file.read_text(encoding="utf-8", errors="replace")
+            extracted = extract_snippet(raw, snippet)
+            if extracted is None:
+                err_console.print(f"[bold red][nantex][/bold red] Snippet not found: {snippet!r}")
+                return False
+            content = build_standalone(extracted, raw)
+            try:
+                pdf_bytes = latex_compile(content, compiler, api)
+            except CompileError as e:
+                elapsed = time.perf_counter() - t0
+                err_console.print(f"[bold red][nantex][/bold red] Compile error ({elapsed:.1f}s):\n{e}")
+                srv.notify("error", str(e))
+                return False
+        else:
+            # Normal mode: re-collect resources for multi-file support
+            resources = project_mod.collect_resources(root)
+            all_paths = [Path(r["path"]) for r in resources]
+            try:
+                pdf_bytes = latex_compile(None, compiler, api, resources=resources)
+            except CompileError as e:
+                elapsed = time.perf_counter() - t0
+                err_console.print(f"[bold red][nantex][/bold red] Compile error ({elapsed:.1f}s):\n{e}")
+                srv.notify("error", str(e))
+                return False
 
         # atomic write: temp file in same dir → os.replace
         tmp = pdf_path.with_suffix(".pdf.tmp")
