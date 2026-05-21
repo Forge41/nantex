@@ -10,6 +10,7 @@ from rich.console import Console
 
 from nantex import __version__
 from nantex.compiler import CompileError, compile as latex_compile
+from nantex.linter import lint
 from nantex.server import PreviewServer
 from nantex import watcher as watcher_mod
 
@@ -67,6 +68,22 @@ def main(
     def do_compile() -> bool:
         t0 = time.perf_counter()
         content = tex_file.read_text(encoding="utf-8", errors="replace")
+
+        # --- pre-compile static lint ---
+        lint_errors = lint(content, tex_file)
+        if lint_errors:
+            error_items = [e for e in lint_errors if e.severity == "error"]
+            warning_items = [e for e in lint_errors if e.severity == "warning"]
+
+            for w in warning_items:
+                err_console.print(f"[yellow][nantex lint][/yellow] Line {w.line}: {w.message}")
+
+            if error_items:
+                formatted = "\n".join(f"  Line {e.line}: {e.message}" for e in error_items)
+                err_console.print(f"[bold red][nantex lint][/bold red] {len(error_items)} error(s):\n{formatted}")
+                srv.notify("error", formatted)
+                return False
+
         try:
             pdf_bytes = latex_compile(content, compiler, api)
         except CompileError as e:
