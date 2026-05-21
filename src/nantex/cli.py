@@ -10,6 +10,7 @@ from rich.console import Console
 
 from nantex import __version__
 from nantex.compiler import CompileError, compile as latex_compile
+from nantex.config import load_config
 from nantex.server import PreviewServer
 from nantex import watcher as watcher_mod
 
@@ -36,6 +37,20 @@ def main(
     once: Annotated[bool, typer.Option("--once", help="Compile once and exit")] = False,
     version: Annotated[Optional[bool], typer.Option("--version", callback=_version_callback, is_eager=True)] = None,
 ):
+    # --- load project config (.nantex.toml) ---
+    cfg = load_config(tex_file.parent if tex_file else Path.cwd())
+
+    # Merge: explicit CLI flag wins; fall back to config value when the flag
+    # still holds its default (i.e. the user did not supply it on the CLI).
+    if compiler == "pdflatex" and "compiler" in cfg:
+        compiler = cfg["compiler"]
+    if api == DEFAULT_API and "api" in cfg:
+        api = cfg["api"]
+    if port == 7474 and "port" in cfg:
+        port = int(cfg["port"])
+    if output is None and "output" in cfg:
+        output = Path(cfg["output"])
+
     # --- validate input ---
     if not tex_file.exists():
         err_console.print(f"[bold red]Error:[/bold red] File not found: {tex_file}")
