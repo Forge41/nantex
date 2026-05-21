@@ -176,8 +176,11 @@ class PreviewServer:
                 except Exception:
                     pass
 
+        class _ReuseAddrServer(ThreadingHTTPServer):
+            allow_reuse_address = True
+
         def _run():
-            httpd = ThreadingHTTPServer(("127.0.0.1", self._port), Handler)
+            httpd = _ReuseAddrServer(("127.0.0.1", self._port), Handler)
             self._server = httpd
             self._ready.set()
             httpd.serve_forever()
