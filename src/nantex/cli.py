@@ -11,6 +11,7 @@ from rich.console import Console
 
 from nantex import __version__
 from nantex.compiler import CompileError, compile as latex_compile
+from nantex.config import load_config
 from nantex.server import PreviewServer
 from nantex import watcher as watcher_mod
 
@@ -44,6 +45,20 @@ def main(
         from nantex import mcp_server
         mcp_server.run()
         return
+
+    # --- load project config (.nantex.toml) ---
+    cfg = load_config(tex_file.parent if tex_file else Path.cwd())
+
+    # Merge: explicit CLI flag wins; fall back to config value when the flag
+    # still holds its default (i.e. the user did not supply it on the CLI).
+    if compiler == "pdflatex" and "compiler" in cfg:
+        compiler = cfg["compiler"]
+    if api == DEFAULT_API and "api" in cfg:
+        api = cfg["api"]
+    if port == 7474 and "port" in cfg:
+        port = int(cfg["port"])
+    if output is None and "output" in cfg:
+        output = Path(cfg["output"])
 
     # --- validate input ---
     if tex_file is None:
