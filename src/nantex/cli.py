@@ -159,7 +159,10 @@ def main(
     console.print(f"[cyan][nantex][/cyan] Preview: {url}")
     if share:
         try:
-            local_ip = socket.gethostbyname(socket.gethostname())
+            # Connect a UDP socket to a public IP to discover the outbound interface
+            with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+                s.connect(("8.8.8.8", 80))
+                local_ip = s.getsockname()[0]
         except OSError:
             local_ip = "127.0.0.1"
         console.print(f"[cyan][nantex][/cyan] Share: http://{local_ip}:{port}")

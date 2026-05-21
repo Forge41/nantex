@@ -179,6 +179,14 @@ class PreviewServer:
         class _ReuseAddrServer(ThreadingHTTPServer):
             allow_reuse_address = True
 
+            def handle_error(self, request, client_address):
+                # Suppress noisy browser disconnect errors — harmless in practice
+                import sys
+                exc = sys.exc_info()[1]
+                if isinstance(exc, (ConnectionResetError, BrokenPipeError)):
+                    return
+                super().handle_error(request, client_address)
+
         def _run():
             httpd = _ReuseAddrServer(("127.0.0.1", self._port), Handler)
             self._server = httpd
