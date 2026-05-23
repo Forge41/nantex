@@ -10,14 +10,14 @@ _DEBOUNCE_S = 0.3
 
 
 class _Handler(FileSystemEventHandler):
-    def __init__(self, target: str, on_change: Callable[[], None]):
-        self._target = target
+    def __init__(self, targets: set[str], on_change: Callable[[], None]):
+        self._targets = targets
         self._on_change = on_change
         self._timer: threading.Timer | None = None
         self._lock = threading.Lock()
 
     def _matches(self, path: str) -> bool:
-        return path == self._target
+        return path in self._targets
 
     def _schedule(self):
         with self._lock:
@@ -40,13 +40,14 @@ class _Handler(FileSystemEventHandler):
                 self._timer.cancel()
 
 
-def watch(tex_path: str, on_change: Callable[[], None]) -> None:
-    resolved = str(Path(tex_path).resolve())
-    parent = str(Path(resolved).parent)
+def watch(paths: list[str], on_change: Callable[[], None]) -> None:
+    resolved = {str(Path(p).resolve()) for p in paths}
+    parents = {str(Path(p).parent) for p in resolved}
 
     handler = _Handler(resolved, on_change)
     observer = Observer()
-    observer.schedule(handler, path=parent, recursive=False)
+    for parent in parents:
+        observer.schedule(handler, path=parent, recursive=False)
     observer.start()
 
     try:
