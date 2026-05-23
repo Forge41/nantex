@@ -46,5 +46,17 @@ def get_compile_status() -> dict:
     return _last_result
 
 def run():
+    import signal, os
+
     print(_BANNER, file=sys.stderr)
-    mcp.run(show_banner=False)
+
+    def _handle_sigint(signum, frame):
+        sys.stderr.write("\n[nantex] Stopped.\n")
+        os._exit(0)
+
+    signal.signal(signal.SIGINT, _handle_sigint)
+
+    try:
+        mcp.run(show_banner=False)
+    except (KeyboardInterrupt, SystemExit):
+        os._exit(0)
