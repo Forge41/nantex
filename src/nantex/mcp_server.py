@@ -1,5 +1,25 @@
+import sys
 from fastmcp import FastMCP
 from nantex.compiler import compile as latex_compile, CompileError
+from nantex import __version__
+
+_BANNER = f"""
+\033[1;36m
+  ███╗   ██╗ █████╗ ███╗   ██╗████████╗███████╗██╗  ██╗
+  ████╗  ██║██╔══██╗████╗  ██║╚══██╔══╝██╔════╝╚██╗██╔╝
+  ██╔██╗ ██║███████║██╔██╗ ██║   ██║   █████╗   ╚███╔╝
+  ██║╚██╗██║██╔══██║██║╚██╗██║   ██║   ██╔══╝   ██╔██╗
+  ██║ ╚████║██║  ██║██║ ╚████║   ██║   ███████╗██╔╝ ██╗
+  ╚═╝  ╚═══╝╚═╝  ╚═╝╚═╝  ╚═══╝   ╚═╝   ╚══════╝╚═╝  ╚═╝
+\033[0m
+  \033[1mLaTeX-to-PDF CLI with browser live preview\033[0m
+  \033[2mhttps://github.com/Forge41/nantex\033[0m
+
+  \033[36m⬡  Server:\033[0m   nantex v{__version__} (MCP mode)
+  \033[36m⬡  Tools:\033[0m    compile_latex · get_compile_status
+  \033[36m⬡  API:\033[0m      https://latex.ytotech.com/builds/sync
+  \033[36m⬡  Docs:\033[0m     https://pypi.org/project/nantex/
+"""
 
 mcp = FastMCP("nantex")
 _last_result: dict = {"state": "idle"}
@@ -27,4 +47,5 @@ def get_compile_status() -> dict:
     return _last_result
 
 def run():
-    mcp.run()
+    print(_BANNER, file=sys.stderr)
+    mcp.run(show_banner=False)
