@@ -17,7 +17,6 @@ _BANNER = f"""
 
   \033[36m⬡  Server:\033[0m   nantex v{__version__} (MCP mode)
   \033[36m⬡  Tools:\033[0m    compile_latex · get_compile_status
-  \033[36m⬡  API:\033[0m      https://latex.ytotech.com/builds/sync
   \033[36m⬡  Docs:\033[0m     https://pypi.org/project/nantex/
 """
 
