@@ -1,0 +1,41 @@
+% Mathematics showcase — run with:
+%   nantex examples/02-math.tex
+\documentclass{article}
+\usepackage{amsmath, amssymb}
+\usepackage[usenames,dvipsnames]{color}
+\title{Mathematics with \texttt{nantex}}
+\author{}
+\date{}
+\begin{document}
+\maketitle
+
+\section*{Inline math}
+Einstein's mass-energy equivalence: $E = mc^2$.
+The quadratic formula gives $x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}$.
+
+\section*{Display math}
+Euler's identity:
+\[
+  e^{i\pi} + 1 = 0
+\]
+
+Maxwell's equations in free space:
+\begin{align}
+  \nabla \cdot \mathbf{E}  &= 0 \\
+  \nabla \cdot \mathbf{B}  &= 0 \\
+  \nabla \times \mathbf{E} &= -\frac{\partial \mathbf{B}}{\partial t} \\
+  \nabla \times \mathbf{B} &= \mu_0\varepsilon_0 \frac{\partial \mathbf{E}}{\partial t}
+\end{align}
+
+\section*{Matrix}
+\[
+  A = \begin{pmatrix} a & b \\ c & d \end{pmatrix},
+  \quad \det(A) = ad - bc
+\]
+
+\vfill
+\begin{center}
+  \small Made by Nandish \textcolor{red}{$\heartsuit$}
+\end{center}
+
+\end{document}

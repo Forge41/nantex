@@ -1,0 +1,61 @@
+% Resume / CV template — run with:
+%   nantex examples/03-resume.tex
+\documentclass[letterpaper,11pt]{article}
+\usepackage[empty]{fullpage}
+\usepackage{titlesec}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+\usepackage[usenames,dvipsnames]{color}
+
+\addtolength{\oddsidemargin}{-0.5in}
+\addtolength{\textwidth}{1in}
+\addtolength{\topmargin}{-0.7in}
+\addtolength{\textheight}{1.4in}
+
+\titleformat{\section}{\vspace{-4pt}\scshape\raggedright\large}{}{0em}{}
+  [\color{black}\titlerule\vspace{-4pt}]
+
+\newcommand{\cvitem}[1]{\item\small{#1\vspace{-2pt}}}
+
+\begin{document}
+
+%---- Header ----
+\begin{center}
+  {\Huge\scshape Alex Johnson}\\[4pt]
+  \small
+  alex@example.com $|$
+  linkedin.com/in/alexjohnson $|$
+  github.com/alexjohnson $|$
+  San Francisco, CA
+\end{center}
+
+\section{Experience}
+\textbf{Senior Software Engineer} \hfill Jan 2022 -- Present\\
+\textit{Acme Corp, San Francisco}
+\begin{itemize}[leftmargin=0.2in, noitemsep]
+  \cvitem{Led migration of monolith to microservices, reducing deploy time by 60\%.}
+  \cvitem{Built real-time data pipeline processing 2M events/day using Kafka and Spark.}
+  \cvitem{Mentored team of 4 junior engineers; established code review standards.}
+\end{itemize}
+
+\textbf{Software Engineer} \hfill Jun 2019 -- Dec 2021\\
+\textit{Startup Inc, Remote}
+\begin{itemize}[leftmargin=0.2in, noitemsep]
+  \cvitem{Developed REST APIs serving 50k daily active users with 99.9\% uptime.}
+  \cvitem{Reduced infrastructure cost by 35\% through caching and query optimization.}
+\end{itemize}
+
+\section{Skills}
+\textbf{Languages:} Python, Go, TypeScript, Java\\
+\textbf{Tools:} Kubernetes, Docker, PostgreSQL, Redis, AWS, Terraform
+
+\section{Education}
+\textbf{B.S. Computer Science} \hfill 2015 -- 2019\\
+\textit{University of California, Berkeley}
+
+\vfill
+\begin{center}
+  \small Made by Nandish \textcolor{red}{$\heartsuit$}
+\end{center}
+
+\end{document}

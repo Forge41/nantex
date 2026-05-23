@@ -1,0 +1,58 @@
+% Academic report with tables and figures — run with:
+%   nantex examples/04-report.tex
+\documentclass[12pt]{article}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{geometry}
+\usepackage[usenames,dvipsnames]{color}
+\geometry{margin=1in}
+
+\title{Quarterly Performance Report}
+\author{Engineering Team}
+\date{\today}
+
+\begin{document}
+\maketitle
+\tableofcontents
+\newpage
+
+\section{Overview}
+This report summarises system performance metrics for Q1 2026.
+All measurements were taken under production load conditions.
+
+\section{Latency}
+Average API response time improved significantly after the caching layer was introduced:
+\[
+  \bar{t}_{\text{after}} = 42\,\text{ms} \quad \text{vs} \quad \bar{t}_{\text{before}} = 310\,\text{ms}
+\]
+This represents an \textbf{86\% reduction} in mean latency.
+
+\section{Results}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+\textbf{Endpoint}  & \textbf{P50 (ms)} & \textbf{P95 (ms)} & \textbf{P99 (ms)} \\
+\midrule
+/api/compile       & 42  & 120 & 340  \\
+/api/status        & 3   & 8   & 15   \\
+/api/health        & 1   & 2   & 4    \\
+\bottomrule
+\end{tabular}
+\caption{API latency percentiles after optimisation.}
+\end{table}
+
+\section{Error Rate}
+Total error rate dropped from $2.3\%$ to $0.04\%$ across all endpoints.
+
+\section{Conclusion}
+The caching and connection pooling improvements exceeded targets.
+Next quarter will focus on reducing P99 latency below $200\,\text{ms}$.
+
+\vfill
+\begin{center}
+  \small Made by Nandish \textcolor{red}{$\heartsuit$}
+\end{center}
+
+\end{document}
