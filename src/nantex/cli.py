@@ -89,7 +89,8 @@ def main(
         console.print(f"[cyan][nantex][/cyan] Multi-file project detected ({len(all_paths)} files), root: {root.name}")
 
     # --- start preview server ---
-    srv = PreviewServer(str(pdf_path), port)
+    bind_host = "0.0.0.0" if share else "127.0.0.1"
+    srv = PreviewServer(str(pdf_path), port, bind_host=bind_host)
     try:
         srv.start()
     except OSError:

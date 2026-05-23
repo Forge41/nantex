@@ -52,7 +52,6 @@ Your `.tex` file content is sent to the configured API endpoint on every compile
 
 ## Limitations
 
-- Single-file only — `\input{}` / `\include{}` is not supported in v1.
 - Requires internet access to the compile API (or a self-hosted instance).
 
 ## Publishing

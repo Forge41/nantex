@@ -66,9 +66,10 @@ fetch('/status').then(r => r.text()).then(t => { if (t) applyState(t); });
 
 
 class PreviewServer:
-    def __init__(self, pdf_path: str, port: int):
+    def __init__(self, pdf_path: str, port: int, bind_host: str = "127.0.0.1"):
         self._pdf_path = Path(pdf_path)
         self._port = port
+        self._bind_host = bind_host
         self._clients: list[queue.Queue] = []
         self._clients_lock = threading.Lock()
         self._last_state: dict = {}
@@ -188,7 +189,7 @@ class PreviewServer:
                 super().handle_error(request, client_address)
 
         def _run():
-            httpd = _ReuseAddrServer(("127.0.0.1", self._port), Handler)
+            httpd = _ReuseAddrServer((self._bind_host, self._port), Handler)
             self._server = httpd
             self._ready.set()
             httpd.serve_forever()
