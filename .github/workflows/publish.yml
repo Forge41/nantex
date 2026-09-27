@@ -3,6 +3,8 @@ name: Publish to PyPI
 on:
   push:
     branches: [main]
+    # A site-only change is not a release.
+    paths-ignore: [site/**, tests/test_site.py, .github/workflows/site.yml]
   workflow_dispatch:
 
 jobs:

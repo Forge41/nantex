@@ -8,6 +8,8 @@ LaTeX-to-PDF live preview in your browser — no local LaTeX install needed.
 
 Write `.tex`, save, see the result. That's it.
 
+**Website:** [nantex.nandish.online](https://nantex.nandish.online)
+
 ## How it works
 
 `nantex` watches your `.tex` file, compiles it via the [latex-on-http](https://github.com/YtoTech/latex-on-http) public API, and serves the PDF through a local HTTP server with automatic browser refresh via Server-Sent Events. No Overleaf switching. No Skim install. Just your editor and a browser.
@@ -112,6 +114,10 @@ nantex examples/04-report.tex        # report with table of contents + tables
 ## Privacy
 
 Your `.tex` file content is sent to the configured API on every compile. For sensitive documents, run a self-hosted [latex-on-http](https://github.com/YtoTech/latex-on-http) instance and point `--api` at it.
+
+## Website
+
+`site/` is the static page at [nantex.nandish.online](https://nantex.nandish.online): plain HTML, CSS and JS with no build step. Preview it with `uv run python -m http.server -d site 7476`. `tests/test_site.py` fails when a CLI flag, MCP tool or example is missing from the page. `.github/workflows/site.yml` deploys it on merge and posts a preview URL on pull requests.
 
 ## License
 
