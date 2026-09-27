@@ -46,4 +46,5 @@ jobs:
       - if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh pr comment ${{ github.event.number }} --edit-last --create-if-none --body "Site preview: ${{ steps.deploy.outputs.url }}"
+        run: |
+          gh pr comment ${{ github.event.number }} --edit-last --create-if-none --body "Site preview: ${{ steps.deploy.outputs.url }}"
