@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>nantex — LaTeX live preview</title>
+<meta name="description" content="Write .tex, save, see the PDF. nantex watches your file, compiles it remotely and live-reloads the browser. No LaTeX install. MCP server included.">
+<link rel="canonical" href="https://nantex.nandish.online/">
+<meta name="theme-color" content="#0e0d0c">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://nantex.nandish.online/">
+<meta property="og:title" content="nantex — LaTeX live preview in your browser">
+<meta property="og:description" content="Write .tex, save, see the PDF. No LaTeX install. MCP server included.">
+<meta property="og:image" content="https://nantex.nandish.online/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=JetBrains+Mono:wght@400&family=Newsreader:ital,opsz,wght@0,6..72,400;1,6..72,400&display=swap">
+<link rel="stylesheet" href="style.css">
+<script src="main.js" defer></script>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <a class="brand" href="#top" aria-label="nantex home">
+      <span>nantex</span>
+      <span class="badge" data-version>v0.1.5</span>
+    </a>
+    <nav>
+      <a href="#how" class="btn btn--ghost">How it works</a>
+      <a href="#install" class="btn btn--ghost">Install</a>
+      <a href="#flags" class="btn btn--ghost">Flags</a>
+      <a href="#mcp" class="btn btn--ghost">MCP</a>
+      <a href="https://github.com/Forge41/nantex" class="btn btn--secondary">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap" id="top">
+
+  <section class="hero">
+    <div class="badges">
+      <span class="badge">Python ≥ 3.11</span>
+      <span class="badge">MIT</span>
+      <span class="badge badge--jade">MCP server</span>
+    </div>
+    <h1>LaTeX live preview in your browser. No LaTeX install.</h1>
+    <p>Write <code>.tex</code>, save, see the PDF. <strong>nantex</strong> watches your file, compiles it remotely, and refreshes the browser for you. One command, no toolchain.</p>
+    <div class="cta">
+      <div class="cmd">
+        <span class="muted">$</span>
+        <span>uvx nantex main.tex</span>
+        <button class="btn btn--ghost" data-copy="uvx nantex main.tex">Copy</button>
+      </div>
+      <a href="https://pypi.org/project/nantex/" class="btn btn--primary">View on PyPI</a>
+    </div>
+  </section>
+
+  <section class="mock" aria-label="Editor and live preview">
+    <div class="window">
+      <div class="titlebar">
+        <div>
+          <span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span class="mono">main.tex</span>
+          <span class="host">·</span>
+          <span class="mono host">localhost:7474</span>
+        </div>
+        <div>
+          <span class="status"><i></i>Compiled in 1.8s</span>
+          <span class="badge badge--sm">pdflatex</span>
+        </div>
+      </div>
+      <div class="panes">
+<pre class="source"><span class="k">\documentclass</span>{article}
+<span class="k">\usepackage</span>{amsmath}
+<span class="k">\title</span>{Maxwell's Equations}
+<span class="k">\begin</span>{document}
+<span class="k">\maketitle</span>
+
+In differential form:
+<span class="k">\begin</span>{align}
+  \nabla \cdot \mathbf{E} &amp;= \frac{\rho}{\varepsilon_0} \\
+  \nabla \cdot \mathbf{B} &amp;= 0 \\
+  \nabla \times \mathbf{E} &amp;= -\frac{\partial \mathbf{B}}{\partial t}
+<span class="k">\end</span>{align}
+
+<span class="k">\input</span>{sections/discussion}
+<span class="k">\end</span>{document}<span class="caret"></span></pre>
+        <div class="viewer">
+          <div class="page" aria-hidden="true">
+            <div class="title">Maxwell's Equations<small data-today>September 27, 2026</small></div>
+            <div class="lead">In differential form:</div>
+            <div class="eqs">
+              <div class="eq"><span>∇ · <b>E</b> = ρ / ε₀</span><small>(1)</small></div>
+              <div class="eq"><span>∇ · <b>B</b> = 0</span><small>(2)</small></div>
+              <div class="eq"><span>∇ × <b>E</b> = −∂<b>B</b>/∂t</span><small>(3)</small></div>
+            </div>
+            <div class="lines"><i style="width:100%"></i><i style="width:94%"></i><i style="width:97%"></i><i style="width:61%"></i></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="how" class="section stack">
+    <div class="intro">
+      <span class="eyebrow">How it works</span>
+      <h2 class="h2">Three moving parts. None of them are a TeX distribution.</h2>
+    </div>
+    <div class="panel steps">
+      <div>
+        <span class="mono muted" style="font-size:12px">01</span>
+        <h3>Watch</h3>
+        <p>A file watcher tracks your root <code>.tex</code> and every <code>\input{}</code> / <code>\include{}</code> it discovers. A fast local lint runs before each compile — unclosed environments, missing files, stray braces.</p>
+      </div>
+      <div>
+        <span class="mono muted" style="font-size:12px">02</span>
+        <h3>Compile</h3>
+        <p>Sources are bundled and posted to a <a href="https://github.com/YtoTech/latex-on-http">latex-on-http</a> endpoint — public by default, or your own with <code>--api</code>. pdflatex, xelatex or lualatex.</p>
+      </div>
+      <div>
+        <span class="mono muted" style="font-size:12px">03</span>
+        <h3>Serve</h3>
+        <p>The PDF is written atomically and served on <code>localhost:7474</code>. Server-Sent Events push a reload to the browser the moment a build finishes — or surface the error inline.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="install" class="section split">
+    <div class="intro">
+      <span class="eyebrow">Install</span>
+      <h2 class="h2">Zero-install with uvx, or keep it on your path.</h2>
+      <p>Requires Python 3.11+. That's the whole dependency list — no TeX Live, no MacTeX, no 4 GB download.</p>
+    </div>
+    <div class="install">
+      <div class="segmented" role="tablist" aria-label="Install method">
+        <button role="tab" aria-selected="true" data-tab="uvx">uvx</button>
+        <button role="tab" aria-selected="false" data-tab="uv">uv tool</button>
+        <button role="tab" aria-selected="false" data-tab="pip">pip</button>
+      </div>
+      <div class="install-box" role="tabpanel">
+        <pre data-install-cmd>uvx nantex main.tex</pre>
+        <button class="btn btn--ghost" data-copy-install>Copy</button>
+      </div>
+      <p class="note" data-install-note>Runs the latest release in an isolated env. Nothing installed permanently.</p>
+    </div>
+  </section>
+
+  <section id="flags" class="section stack">
+    <div class="intro">
+      <span class="eyebrow">Usage</span>
+      <h2 class="h2">Every flag.</h2>
+      <p>Persist any of these in a <code>.nantex.toml</code> next to your project; CLI flags always win.</p>
+    </div>
+    <div class="panel" role="table" aria-label="Command-line flags">
+      <div class="row head" role="row"><span role="columnheader">Flag</span><span role="columnheader">Default</span><span role="columnheader">Description</span></div>
+      <div class="row" role="row"><span class="mono" data-flag>--compiler</span><span class="def">pdflatex</span><span class="desc">LaTeX compiler: pdflatex, xelatex, lualatex</span></div>
+      <div class="row" role="row"><span class="mono" data-flag>--api</span><span class="def">https://latex.ytotech.com/builds/sync</span><span class="desc">Compile API endpoint — point at a self-hosted latex-on-http</span></div>
+      <div class="row" role="row"><span class="mono" data-flag>--output</span><span class="def">&lt;file&gt;.pdf</span><span class="desc">Output PDF path</span></div>
+      <div class="row" role="row"><span class="mono" data-flag>--port</span><span class="def">7474</span><span class="desc">Preview server port</span></div>
+      <div class="row" role="row"><span class="mono" data-flag>--once</span><span class="def">off</span><span class="desc">Compile once and exit</span></div>
+      <div class="row" role="row"><span class="mono" data-flag>--share</span><span class="def">off</span><span class="desc">Print a LAN URL so collaborators can open the preview</span></div>
+      <div class="row" role="row"><span class="mono" data-flag>--snippet</span><span class="def">off</span><span class="desc">Compile a label (fig:x) or line range (10-25) in isolation</span></div>
+      <div class="row" role="row"><span class="mono" data-flag>--mcp</span><span class="def">off</span><span class="desc">Run as an MCP server for AI agents</span></div>
+      <div class="row" role="row"><span class="mono" data-flag>--version</span><span class="def">—</span><span class="desc">Print the installed version and exit</span></div>
+    </div>
+  </section>
+
+  <section id="mcp" class="section">
+    <div class="mcp">
+      <div>
+        <span class="badge badge--jade">For AI agents</span>
+        <h2 class="h2">Let your agent compile LaTeX.</h2>
+        <p><code>nantex --mcp</code> runs a Model Context Protocol server that exposes two tools. Claude Code, Cursor or any MCP client can write a document, compile it, and read back structured errors — no shell juggling.</p>
+        <div class="tools">
+          <div><code data-tool>compile_latex</code><span>content, compiler, api_url → success, pdf_path, errors</span></div>
+          <div><code data-tool>get_compile_status</code><span>state of the last compile</span></div>
+        </div>
+      </div>
+      <div>
+        <span class="mono muted" style="font-size:12px">.mcp.json</span>
+<pre>{
+  <b>"mcpServers"</b>: {
+    <b>"nantex"</b>: {
+      <b>"command"</b>: "uvx",
+      <b>"args"</b>: ["nantex", "--mcp"]
+    }
+  }
+}</pre>
+      </div>
+    </div>
+  </section>
+
+  <section id="examples" class="section split">
+    <div class="intro">
+      <span class="eyebrow">Examples</span>
+      <h2 class="h2">Ready-to-run <code>.tex</code> files.</h2>
+      <p>Clone the repo and point nantex at any of them.</p>
+    </div>
+    <div class="panel examples">
+      <div><span class="mono">nantex examples/<span data-example>01-hello-world.tex</span></span><span>minimal quickstart</span></div>
+      <div><span class="mono">nantex examples/<span data-example>02-math.tex</span></span><span>equations, Maxwell's laws, matrices</span></div>
+      <div><span class="mono">nantex examples/<span data-example>03-resume.tex</span></span><span>CV / resume template</span></div>
+      <div><span class="mono">nantex examples/<span data-example>04-report.tex</span></span><span>table of contents + tables</span></div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="links">
+      <a href="https://github.com/Forge41/nantex">GitHub</a>
+      <a href="https://pypi.org/project/nantex/">PyPI</a>
+      <a href="https://github.com/YtoTech/latex-on-http">latex-on-http</a>
+      <a href="https://porto.nandish.online/">Built by Nandisha</a>
+    </div>
+    <span>MIT · Your .tex is sent to the compile API on every build — self-host it with --api for sensitive documents.</span>
+  </div>
+</footer>
+</body>
+</html>

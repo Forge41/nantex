@@ -1,0 +1,49 @@
+# Deploys site/ to nantex.nandish.online. The Netlify site is not linked to the
+# repository, so this is the only thing that deploys it. Pull requests get a draft URL.
+name: Site
+
+on:
+  push:
+    branches: [main]
+    paths: [site/**, src/nantex/cli.py, src/nantex/mcp_server.py, examples/**, .github/workflows/site.yml]
+  pull_request:
+    paths: [site/**, src/nantex/cli.py, src/nantex/mcp_server.py, examples/**, .github/workflows/site.yml]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: site-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NETLIFY_SITE_ID: 738918ef-daa4-4d02-bcde-4d756ee1c21c
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v4
+      # The page documents every flag, MCP tool and example; this fails when they drift.
+      - run: uv run pytest -q tests/test_site.py
+      - run: npm install -g netlify-cli@27
+      - name: Deploy
+        id: deploy
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_API_TOKEN }}
+        run: |
+          if [ "${{ github.event_name }}" = pull_request ]; then
+            url=$(netlify deploy --dir site --site "$NETLIFY_SITE_ID" --alias "pr-${{ github.event.number }}" \
+              --message "PR #${{ github.event.number }}" --json | jq -r .deploy_url)
+          else
+            url=$(netlify deploy --dir site --site "$NETLIFY_SITE_ID" --prod \
+              --message "${GITHUB_SHA:0:7}" --json | jq -r .url)
+          fi
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+      - if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh pr comment ${{ github.event.number }} --edit-last --create-if-none --body "Site preview: ${{ steps.deploy.outputs.url }}"
