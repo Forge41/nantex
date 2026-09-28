@@ -21,8 +21,8 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/Forge41/nantex"
-Repository = "https://github.com/Forge41/nantex"
+Homepage = "https://nantex.nandish.online"
+Repository = "https://github.com/NandishNaik01/nantex"
 
 [project.scripts]
 nantex = "nantex.cli:app"
