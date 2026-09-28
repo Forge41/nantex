@@ -88,13 +88,22 @@ def main(
     if len(all_paths) > 1:
         console.print(f"[cyan][nantex][/cyan] Multi-file project detected ({len(all_paths)} files), root: {root.name}")
 
-    # --- start preview server ---
-    srv = PreviewServer(str(pdf_path), port)
-    try:
-        srv.start()
-    except OSError:
-        err_console.print(f"[bold red][nantex][/bold red] Port {port} is already in use. Try: nantex {tex_file.name} --port {port + 1}")
-        raise typer.Exit(1)
+    if once and share:
+        console.print("[yellow][nantex][/yellow] --share is ignored with --once: there is no preview to share.")
+
+    # --- start preview server (watch mode only; --once just writes the PDF) ---
+    srv: Optional[PreviewServer] = None
+    if not once:
+        srv = PreviewServer(str(pdf_path), port)
+        try:
+            srv.start()
+        except OSError:
+            err_console.print(f"[bold red][nantex][/bold red] Port {port} is already in use. Try: nantex {tex_file.name} --port {port + 1}")
+            raise typer.Exit(1)
+
+    def notify(state: str, message: str) -> None:
+        if srv is not None:
+            srv.notify(state, message)
 
     # --- compile function ---
     def do_compile() -> bool:
@@ -112,7 +121,7 @@ def main(
             if errors:
                 formatted = "\n".join(f"  Line {e.line}: {e.message}" for e in errors)
                 err_console.print(f"[bold red][nantex lint][/bold red] {len(errors)} error(s):\n{formatted}")
-                srv.notify("error", formatted)
+                notify("error", formatted)
                 return False
 
         if snippet is not None:
@@ -128,7 +137,7 @@ def main(
             except CompileError as e:
                 elapsed = time.perf_counter() - t0
                 err_console.print(f"[bold red][nantex][/bold red] Compile error ({elapsed:.1f}s):\n{e}")
-                srv.notify("error", str(e))
+                notify("error", str(e))
                 return False
         else:
             # Normal mode: re-collect resources for multi-file support
@@ -139,7 +148,7 @@ def main(
             except CompileError as e:
                 elapsed = time.perf_counter() - t0
                 err_console.print(f"[bold red][nantex][/bold red] Compile error ({elapsed:.1f}s):\n{e}")
-                srv.notify("error", str(e))
+                notify("error", str(e))
                 return False
 
         # atomic write: temp file in same dir → os.replace
@@ -148,11 +157,14 @@ def main(
         os.replace(tmp, pdf_path)
 
         elapsed = time.perf_counter() - t0
-        srv.notify("ok", f"Compiled in {elapsed:.1f}s")
+        notify("ok", f"Compiled in {elapsed:.1f}s")
         console.print(f"[green][nantex][/green] Compiled → {pdf_path} ({elapsed:.1f}s)")
         return True
 
-    do_compile()
+    ok = do_compile()
+
+    if once:
+        raise typer.Exit(0 if ok else 1)
 
     # --- open browser ---
     url = f"http://localhost:{port}"
@@ -167,9 +179,6 @@ def main(
             local_ip = "127.0.0.1"
         console.print(f"[cyan][nantex][/cyan] Share: http://{local_ip}:{port}")
     webbrowser.open(url)
-
-    if once:
-        return
 
     # --- watch loop ---
     console.print("[dim][nantex][/dim] Watching for changes… (Ctrl+C to stop)")

@@ -31,7 +31,7 @@ pip install nantex
 
 ```bash
 nantex main.tex                       # watch mode, opens http://localhost:7474
-nantex main.tex --once                # compile once and exit
+nantex main.tex --once                # compile once to PDF and exit (no preview)
 nantex main.tex --port 8080           # custom port
 nantex main.tex --compiler xelatex   # use xelatex instead of pdflatex
 nantex main.tex --output ~/out.pdf   # custom output path
@@ -49,7 +49,7 @@ nantex --mcp                         # run as MCP server for AI agents
 | `--api` | `https://latex.ytotech.com/builds/sync` | Compile API endpoint |
 | `--output` | `<file>.pdf` | Output PDF path |
 | `--port` | `7474` | Preview server port |
-| `--once` | off | Compile once and exit |
+| `--once` | off | Compile once to PDF and exit; no preview server or browser |
 | `--share` | off | Print local network URL for live collaboration |
 | `--snippet` | off | Compile a label (`fig:x`) or line range (`10-25`) in isolation |
 | `--mcp` | off | Run as an MCP server for AI agent integration |
