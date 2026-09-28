@@ -39,6 +39,7 @@ nantex main.tex --api https://...    # self-hosted latex-on-http instance
 nantex main.tex --share              # print LAN URL for collaborators
 nantex main.tex --snippet fig:label  # preview a single figure or line range
 nantex --mcp                         # run as MCP server for AI agents
+nantex --version                     # print the installed version
 ```
 
 ## Flags
@@ -53,6 +54,17 @@ nantex --mcp                         # run as MCP server for AI agents
 | `--share` | off | Print local network URL for live collaboration |
 | `--snippet` | off | Compile a label (`fig:x`) or line range (`10-25`) in isolation |
 | `--mcp` | off | Run as an MCP server for AI agent integration |
+| `--version` | — | Print the installed version and exit |
+
+## One-shot builds
+
+`--once` compiles to PDF and exits. It starts no preview server, opens no browser and needs no free port, so it fits scripts, pre-commit hooks and CI:
+
+```bash
+nantex resume.tex --once --output dist/resume.pdf
+```
+
+It exits `0` when the PDF is written and `1` on a lint error, compile error or missing `--snippet` target, so a failed build fails the job. `--share` is ignored with `--once`.
 
 ## Project config
 
@@ -85,7 +97,10 @@ Run nantex as an MCP server so AI agents (Claude, etc.) can compile LaTeX autono
 nantex --mcp
 ```
 
-Exposes two tools: `compile_latex` and `get_compile_status`.
+Exposes two tools:
+
+- `compile_latex(content, compiler, api_url)` compiles once and returns `success`, `pdf_path` (a temp file), `errors` and `message`. It never raises and never starts a preview.
+- `get_compile_status()` returns the result of the last compile.
 
 To wire it into Claude Code, add to `.mcp.json`:
 
@@ -114,6 +129,15 @@ nantex examples/04-report.tex        # report with table of contents + tables
 ## Privacy
 
 Your `.tex` file content is sent to the configured API on every compile. For sensitive documents, run a self-hosted [latex-on-http](https://github.com/YtoTech/latex-on-http) instance and point `--api` at it.
+
+## Development
+
+```bash
+uv sync
+uv run pytest
+```
+
+Every merge to `main` publishes a patch release to PyPI (`.github/workflows/publish.yml`); site-only changes don't.
 
 ## Website
 
